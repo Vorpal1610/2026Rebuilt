@@ -83,9 +83,9 @@ class ModuleConfig:
 moduleConfigs: Final[List[ModuleConfig]] = [
     # Front Left
     ModuleConfig(
-        3, # Steer motor ID
-        7, # Drive motor ID
-        7, # Encoder ID
+        5, # Steer motor ID
+        1, # Drive motor ID
+        5, # Encoder ID
         0.155029296875, # Encoder offset (zero encoders in Phoenix Tuner)
         True, # Invert drive motor (use if driving backwards)
         False, # Invert steer motors (use if steering in reverse)
@@ -93,15 +93,15 @@ moduleConfigs: Final[List[ModuleConfig]] = [
     ),
     # Front Right
     ModuleConfig(
-        1, 5, 5, -0.27978515625, True, False, False
+        2, 6, 6, -0.27978515625, True, False, False
     ),
     # Back Left
     ModuleConfig(
-        4, 8, 8, -0.241943359375, True, False, False
+        3, 7, 7, -0.241943359375, True, False, False
     ),
     # Back Right
     ModuleConfig(
-        2, 6, 6, -0.06494140625, True, False, False
+        4, 8, 8, -0.06494140625, True, False, False
     )
 ]
 
