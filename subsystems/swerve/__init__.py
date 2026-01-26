@@ -1,3 +1,7 @@
+"""
+Contains the drivetrain, built off CTRE's Swerve Project Generator.
+"""
+
 import math
 from typing import Callable, overload
 
@@ -18,9 +22,8 @@ from wpimath.kinematics import ChassisSpeeds
 from wpimath.units import degreesToRadians, inchesToMeters, rotationsToRadians
 
 # Robot config
-import robot_config
-
-if robot_config.currentRobot == robot_config.Robot.LARRY:
+from robot_config import currentRobot, Robot
+if currentRobot == Robot.LARRY:
     from generated.larry.tuner_constants import TunerSwerveDrivetrain
 else:
     from generated.tuner_constants import TunerSwerveDrivetrain
@@ -61,7 +64,6 @@ class SwerveSubsystem(Subsystem, swerve.SwerveDrivetrain):
         :param modules:              Constants for each specific module
         :type modules:               list[swerve.SwerveModuleConstants]
         """
-        ...
 
     @overload
     def __init__(
@@ -87,7 +89,6 @@ class SwerveSubsystem(Subsystem, swerve.SwerveDrivetrain):
         :param modules:                     Constants for each specific module
         :type modules:                      list[swerve.SwerveModuleConstants]
         """
-        ...
 
     @overload
     def __init__(
@@ -123,7 +124,6 @@ class SwerveSubsystem(Subsystem, swerve.SwerveDrivetrain):
         :param modules:                     Constants for each specific module
         :type modules:                      list[swerve.SwerveModuleConstants]
         """
-        ...
 
     @overload
     def __init__(
@@ -178,7 +178,10 @@ class SwerveSubsystem(Subsystem, swerve.SwerveDrivetrain):
                 self,
             ),
         )
-        """SysId routine for characterizing translation. This is used to find PID gains for the drive motors."""
+        """
+        SysId routine for characterizing translation. 
+        This is used to find PID gains for the drive motors.
+        """
 
         self._sys_id_routine_steer = SysIdRoutine(
             SysIdRoutine.Config(
@@ -198,7 +201,10 @@ class SwerveSubsystem(Subsystem, swerve.SwerveDrivetrain):
                 self,
             ),
         )
-        """SysId routine for characterizing steer. This is used to find PID gains for the steer motors."""
+        """
+        SysId routine for characterizing steer. 
+        This is used to find PID gains for the steer motors.
+        """
 
         self._sys_id_routine_rotation = SysIdRoutine(
             SysIdRoutine.Config(
@@ -229,7 +235,8 @@ class SwerveSubsystem(Subsystem, swerve.SwerveDrivetrain):
         """
         SysId routine for characterizing rotation.
         This is used to find PID gains for the FieldCentricFacingAngle HeadingController.
-        See the documentation of swerve.requests.SysIdSwerveRotation for info on importing the log to SysId.
+        See the documentation of swerve.requests.SysIdSwerveRotation for info on importing 
+            the log to SysId.
         """
 
         self._sys_id_routine_to_apply = self._sys_id_routine_translation
@@ -255,7 +262,6 @@ class SwerveSubsystem(Subsystem, swerve.SwerveDrivetrain):
             ),
             config,
             lambda: DriverStation.getAlliance() == DriverStation.Alliance.kRed,
-            # If getAlliance() is None (maybe the robot doesn't know its alliance yet), it defaults to blue. This returns True if the alliance is red, and False otherwise
             self
         )
 
@@ -267,7 +273,11 @@ class SwerveSubsystem(Subsystem, swerve.SwerveDrivetrain):
         self._module_targets = lambda: state().module_targets
         Logger.recordOutput("Drive/GeneratorActive", False)
 
-        self._previous_setpoint = SwerveSetpoint(self._speeds(), self._module_states(), DriveFeedforwards.zeros(4))
+        self._previous_setpoint = SwerveSetpoint(
+            self._speeds(),
+            self._module_states(),
+            DriveFeedforwards.zeros(4)
+        )
         self._setpoint_generator = SwerveSetpointGenerator(config, rotationsToRadians(3.75))
 
         if utils.is_simulation():
@@ -278,13 +288,15 @@ class SwerveSubsystem(Subsystem, swerve.SwerveDrivetrain):
         Applies the SwerveSetpointGenerator onto given SwerveRequests.
 
         If the request has velocity x and y attributes and a rotational_rate,
-        it's a "normal" request (FieldCentric, RobotCentric, etc). If it's specifically FieldCentric,
-        convert to robot speeds before passing it into the SwerveSetpointGenerator.
+        it's a "normal" request (FieldCentric, RobotCentric, etc).
+        If it's specifically FieldCentric, convert to robot speeds
+            before passing it into the SwerveSetpointGenerator.
 
-        Elif the request has a "speeds" attribute (ApplyRobotSpeeds), pass speeds straight into the gen.
+        Elif the request has a "speeds" attribute (ApplyRobotSpeeds),
+            pass speeds straight into the gen.
 
-        Otherwise, the request is used for something else (hockey stop, PointAtX, etc). Simply update prevSetpoint
-        and call the request as normal.
+        Otherwise, the request is used for something else (hockey stop, PointAtX, etc).
+        Simply update prevSetpoint and call the request as normal.
         """
         # FieldCentric, RobotCentric
         if (
@@ -395,10 +407,13 @@ class SwerveSubsystem(Subsystem, swerve.SwerveDrivetrain):
 
     def periodic(self):
         # Periodically try to apply the operator perspective.
-        # If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
-        # This allows us to correct the perspective in case the robot code restarts mid-match.
+        # If we haven't applied the operator perspective before,
+        #   then we should apply it regardless of DS state.
+        # This allows us to correct the perspective in case the robot code restarts
+        #   mid-match.
         # Otherwise, only check and apply the operator perspective if the DS is disabled.
-        # This ensures driving behavior doesn't change until an explicit disable event occurs during testing.
+        # This ensures driving behavior doesn't change
+        #   until an explicit disable event occurs during testing.
         if not self._has_applied_operator_perspective or DriverStation.isDisabled():
             alliance_color = DriverStation.getAlliance()
             if alliance_color is not None:
@@ -421,9 +436,23 @@ class SwerveSubsystem(Subsystem, swerve.SwerveDrivetrain):
         rotation = self.get_rotation3d()
         Logger.recordOutput(
             "Drive/EstimatedPosition3d", Pose3d(pose).exp(
-                Twist3d(0, 0, abs(degreesToRadians(rotation.x_degrees)) * inchesToMeters(12) / 2, 0, degreesToRadians(rotation.x_degrees), 0)
+                Twist3d(
+                    0,
+                    0,
+                    abs(degreesToRadians(rotation.x_degrees)) * inchesToMeters(12) / 2,
+                    0,
+                    degreesToRadians(rotation.x_degrees),
+                    0
+                )
             ).exp(
-                Twist3d(0, 0, abs(degreesToRadians(rotation.z_degrees)) * inchesToMeters(12) / 2, degreesToRadians(rotation.z_degrees), 0, 0)
+                Twist3d(
+                    0,
+                    0,
+                    abs(degreesToRadians(rotation.z_degrees)) * inchesToMeters(12) / 2,
+                    degreesToRadians(rotation.z_degrees),
+                    0,
+                    0
+                )
             )
         )
 
