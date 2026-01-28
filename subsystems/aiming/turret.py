@@ -28,7 +28,7 @@ TO-DO:
 """
 
 # Using intake-subsystem.py as a reference
-class AimingSubsytem(PIDSubsystem):
+class TurretSubsytem(PIDSubsystem):
     """
     Responsible for aiming horizontally with the turret and vertically with the variable hood.
     """
@@ -71,7 +71,7 @@ class AimingSubsytem(PIDSubsystem):
         vertical_distance_to_hub = vertical_distance_to_tag + Constants.AimingConstants.APRILTAGTOHUBCENTRE
         proposed_angle = degrees(atan(horizontal_distance / vertical_distance_to_hub))
         return proposed_angle
-    
+
     def aimTowardsGoal(self):
         # If the robot position is in the alliance side, call getANgleToHub before aiming
         # If the robot is in the neutral zone, have it determine what side of the zone it's on so it knows the target to aim at
@@ -81,4 +81,6 @@ class AimingSubsytem(PIDSubsystem):
             else:
                 print("Shoot to outpost")
         elif (DriverStation.getAlliance == DriverStation.Alliance.kBlue and self.currentPose.x < Constants.AimingConstants.BLUEALLIANCEBORDER) or (DriverStation.getAlliance == DriverStation.Alliance.kRed and self.currentPose.x > Constants.AimingConstants.REDALLIANCEBORDER):
-            self.getAngleToHub() # Figure out the values idk
+            self.target_angle = self.getAngleToHub() # Figure out the values idk
+
+        
