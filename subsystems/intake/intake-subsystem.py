@@ -26,10 +26,10 @@ class IntakeSubsystem(StateSubsystem):
         INTAKE = auto()
         OUTPUT = auto()
 
-    _canrange_config = (CANrangeConfiguration().with_proximity_params(ProximityParamsConfigs().with_proximity_threshold(0.1)))
-
-    _state_configs: dict[SubsystemState, tuple[int, bool]] = {
-        SubsystemState.STOP: (0, False),
+    _state_configs: dict[SubsystemState, float] = {
+        SubsystemState.STOP: 0.0,
+        SubsystemState.INTAKE: 12.0,
+        SubsystemState.OUTPUT: -12.0,
     }
 
     def __init__(self, io: IntakeIO) -> None:
@@ -59,7 +59,7 @@ class IntakeSubsystem(StateSubsystem):
         # Get motor voltage for this state
         motor_voltage = self._state_configs.get(
             desired_state, 
-            (0.0)
+            0.0
         )
         
         # Set motor voltage through IO layer

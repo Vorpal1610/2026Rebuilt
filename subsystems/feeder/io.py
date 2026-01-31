@@ -54,7 +54,7 @@ class FeederIOTalonFX(FeederIO):
         :param motor_id: CAN ID of the TalonFX motor
         :param motor_config: TalonFX configuration to apply
         """
-        self._motor: Final[TalonFX] = TalonFX(motor_id, "*")
+        self._motor: Final[TalonFX] = TalonFX(motor_id, "rio")
         # Apply motor configuration
         _motor_config = TalonFXConfiguration()
 

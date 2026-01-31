@@ -25,8 +25,9 @@ class FeederSubsystem(StateSubsystem):
         STOP = auto()
         INWARD = auto()
 
-    _state_configs: dict[SubsystemState, tuple[float]] = {
-        SubsystemState.STOP: (0.0),
+    _state_configs: dict[SubsystemState, float] = {
+        SubsystemState.STOP: 0.0,
+        SubsystemState.INWARD: 12.0,
     }
 
     def __init__(self, io: FeederIO) -> None:
@@ -56,7 +57,7 @@ class FeederSubsystem(StateSubsystem):
         # Get motor voltage for this state
         motor_voltage = self._state_configs.get(
             desired_state, 
-            (0.0)
+            0.0
         )
         
         # Set motor voltage through IO layer
