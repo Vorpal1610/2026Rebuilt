@@ -4,7 +4,7 @@ from typing import Optional
 import commands2
 import commands2.button
 from commands2 import cmd, InstantCommand
-from commands2.button import CommandXboxController
+from commands2.button import CommandXboxController, Trigger
 from pathplannerlib.auto import NamedCommands, PathPlannerAuto, AutoBuilder
 from pathplannerlib.util import FlippingUtil
 from phoenix6 import swerve
