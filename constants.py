@@ -43,13 +43,19 @@ class Constants:
     """Values may differ between robots."""
     class ClimberConstants:
         GEAR_RATIO = None
-        GAINS = None
-        SERVO_PORT = None
-        SERVO_ENGAGED_ANGLE = None
+        GAINS = (Slot0Configs()
+                .with_k_p(1.0)
+                .with_k_i(0.0)
+                .with_k_d(0.0)
+                .with_k_s(0.0)
+                .with_k_v(0.0)
+                .with_k_a(0.0)
+            )
         VOLTAGE_INWARDS = None
-        SERVO_DISENGAGED_ANGLE = None
         VOLTAGE_OUTWARDS = None
         CLIMB_FULL_THRESHOLD = None
+        SUPPLY_CURRENT = None
+        MOMENT_OF_INERTIA = None
 
     class IntakeConstants:
         GEAR_RATIO = None
@@ -91,12 +97,11 @@ def _init_hardware_configs():
                 .with_k_v(0.0)
                 .with_k_a(0.0)
             )
-            Constants.ClimberConstants.SERVO_PORT = 0
-            Constants.ClimberConstants.SERVO_ENGAGED_ANGLE = 0.0
-            Constants.ClimberConstants.SERVO_DISENGAGED_ANGLE = 90.0
             Constants.ClimberConstants.VOLTAGE_INWARDS = 16.0
             Constants.ClimberConstants.VOLTAGE_OUTWARDS = -4.0
             Constants.ClimberConstants.CLIMB_FULL_THRESHOLD = 100.0  # Adjust as needed
+            Constants.ClimberConstants.SUPPLY_CURRENT = 30.0
+            Constants.ClimberConstants.MOMENT_OF_INERTIA = 0.67
 
         case _:  # COMP or UNKNOWN defaults to COMP
             # Climber
@@ -109,12 +114,11 @@ def _init_hardware_configs():
                 .with_k_v(0.0)
                 .with_k_a(0.0)
             )
-            Constants.ClimberConstants.SERVO_PORT = 0
-            Constants.ClimberConstants.SERVO_ENGAGED_ANGLE = 0.0
-            Constants.ClimberConstants.SERVO_DISENGAGED_ANGLE = 90.0
             Constants.ClimberConstants.VOLTAGE_INWARDS = 16.0
             Constants.ClimberConstants.VOLTAGE_OUTWARDS = -4.0
             Constants.ClimberConstants.CLIMB_FULL_THRESHOLD = 100.0  # Adjust as needed
+            Constants.ClimberConstants.SUPPLY_CURRENT = 30.0 # I think that's right idk man
+            Constants.ClimberConstants.MOMENT_OF_INERTIA = 0.67 # placeholder
     
             # Intake
             Constants.IntakeConstants.GEAR_RATIO = 1.0  # Adjust based on actual gear ratio

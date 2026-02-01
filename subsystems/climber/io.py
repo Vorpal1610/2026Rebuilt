@@ -8,11 +8,17 @@ from phoenix6.controls import VoltageOut
 from phoenix6.hardware import TalonFX
 from phoenix6.signals import NeutralModeValue
 from pykit.autolog import autolog
-from wpilib import Servo
-from wpimath.units import radians, radians_per_second, volts, amperes, celsius, degrees
+from wpilib import PWMTalonFX, Encoder, RobotController
+from wpilib.simulation import DCMotorSim, EncoderSim
+from wpimath.system.plant import DCMotor, LinearSystemId
+from wpimath.units import radians, radians_per_second, volts, amperes, celsius, degrees, rotationsToRadians
+from wpimath.controller import PIDController
+from wpimath.trajectory import TrapezoidProfile
 
 from constants import Constants
 from util import tryUntilOk
+
+import math
 
 
 class ClimberIO(ABC):
@@ -33,9 +39,6 @@ class ClimberIO(ABC):
         motorCurrent: amperes = 0.0
         motorTemperature: celsius = 0.0
 
-        # Servo status
-        servoAngle: degrees = 0.0
-
     def updateInputs(self, inputs: ClimberIOInputs) -> None:
         """Update the inputs with current hardware/simulation state."""
         pass
@@ -44,17 +47,12 @@ class ClimberIO(ABC):
         """Set the motor output voltage."""
         pass
 
-    def setServoAngle(self, angle: degrees) -> None:
-        """Set the servo angle."""
-        pass
-
-
 class ClimberIOTalonFX(ClimberIO):
     """
     Real hardware implementation using TalonFX motor controller and Servo.
     """
 
-    def __init__(self, motor_id: int, servo_port: int, motor_config: TalonFXConfiguration) -> None:
+    def __init__(self, motor_id: int, motor_config: TalonFXConfiguration) -> None:
         """
         Initialize the real hardware IO.
 
@@ -63,7 +61,6 @@ class ClimberIOTalonFX(ClimberIO):
         :param motor_config: TalonFX configuration to apply
         """
         self._motor: Final[TalonFX] = TalonFX(motor_id, "*")
-        self._servo: Final[Servo] = Servo(servo_port)
 
         # Apply motor configuration
         tryUntilOk(5, lambda: self._motor.configurator.apply(motor_config, 0.25))
@@ -109,17 +106,10 @@ class ClimberIOTalonFX(ClimberIO):
         inputs.motorCurrent = self._current.value_as_double
         inputs.motorTemperature = self._temperature.value_as_double
 
-        # Update servo input (Servo doesn't provide feedback, so we track the last set value)
-        inputs.servoAngle = self._servo.getAngle()
-
     def setMotorVoltage(self, voltage: volts) -> None:
         """Set the motor output voltage."""
         self._voltageRequest.output = voltage
         self._motor.set_control(self._voltageRequest)
-
-    def setServoAngle(self, angle: degrees) -> None:
-        """Set the servo angle."""
-        self._servo.setAngle(angle)
 
 
 class ClimberIOSim(ClimberIO):
@@ -132,31 +122,47 @@ class ClimberIOSim(ClimberIO):
         self._motorPosition: float = 0.0
         self._motorVelocity: float = 0.0
         self._motorAppliedVolts: float = 0.0
-        self._servoAngle: float = 0.0
+
+        self._motorType = DCMotor.krakenX60FOC(1)
+        self._climberSim = DCMotorSim(LinearSystemId(self._motorType, Constants.ClimberConstants.MOMENT_OF_INERTIA, Constants.ClimberConstants.GEAR_RATIO, self._motorType))
+
+        self._closedLoop = False
+
+        self._controller = PIDController(Constants.ClimberConstants.GAINS.k_p,
+                                        Constants.ClimberConstants.GAINS.k_i,
+                                        Constants.ClimberConstants.GAINS.k_d)
 
     def updateInputs(self, inputs: ClimberIO.ClimberIOInputs) -> None:
         """Update inputs with simulated state."""
         # Simulate motor behavior (simple integration)
         # In a real simulation, you'd use a physics model here
-        dt = 0.02  # 20ms periodic
-        self._motorPosition += self._motorVelocity * dt
+
+        if (self._closedLoop):
+            self._motorAppliedVolts = self._controller.calculate(self._climberSim.getAngularPosition())
+        else:
+            self._controller.reset(self._climberSim.getAngularPosition(), self._climberSim.getAngularAcceleration())
+
+        self.setMotorVoltage(self._motorAppliedVolts)
+        self._climberSim.update(0.02)  # 20ms periodic
 
         # Update inputs
         inputs.motorConnected = True
         inputs.motorPosition = self._motorPosition
         inputs.motorVelocity = self._motorVelocity
         inputs.motorAppliedVolts = self._motorAppliedVolts
-        inputs.motorCurrent = abs(self._motorAppliedVolts / 12.0) * 40.0  # Rough current estimate
+        inputs.motorCurrent = abs(self._climberSim.getCurrentDraw())  # Rough current estimate
         inputs.motorTemperature = 25.0  # Room temperature
 
-        inputs.servoAngle = self._servoAngle
+    def setOpenLoop(self, output):
+        self._closedLoop = False
+        self._motorAppliedVolts = output
+
+    def setPosition(self, position):
+        self._closedLoop = True
+        self._controller.setSetpoint(rotationsToRadians(position))
 
     def setMotorVoltage(self, voltage: volts) -> None:
         """Set the motor output voltage (simulated)."""
         self._motorAppliedVolts = max(-12.0, min(12.0, voltage))
         # Simple velocity model: voltage -> velocity (with some damping)
         self._motorVelocity = self._motorAppliedVolts * 10.0  # Adjust multiplier as needed
-
-    def setServoAngle(self, angle: degrees) -> None:
-        """Set the servo angle (simulated)."""
-        self._servoAngle = angle
