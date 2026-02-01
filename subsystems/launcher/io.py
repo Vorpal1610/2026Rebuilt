@@ -52,9 +52,9 @@ class LauncherIOTalonFX(LauncherIO):
         Initialize the real hardware IO.
 
         :param motor_id: CAN ID of the TalonFX motor
-        :param motor_config: TalonFX configuration to apply
         """
-        self._motor: Final[TalonFX] = TalonFX(motor_id, "rio")
+        self._main_motor: Final[TalonFX] = TalonFX(motor_id, "rio")
+
 
         # Apply motor configuration
         _motor_config = TalonFXConfiguration()
@@ -63,15 +63,15 @@ class LauncherIOTalonFX(LauncherIO):
         _motor_config.motor_output.neutral_mode = NeutralModeValue.COAST
         _motor_config.feedback.sensor_to_mechanism_ratio = Constants.LauncherConstants.GEAR_RATIO
 
-        tryUntilOk(5, lambda: self._motor.configurator.apply(_motor_config, 0.25))
-        tryUntilOk(5, lambda: self._motor.set_position(0, 0.25))
+        tryUntilOk(5, lambda: self._main_motor.configurator.apply(_motor_config, 0.25))
+        tryUntilOk(5, lambda: self._main_motor.set_position(0, 0.25))
 
         # Create status signals for motor
-        self._position: Final = self._motor.get_position()
-        self._velocity: Final = self._motor.get_velocity()
-        self._appliedVolts: Final = self._motor.get_motor_voltage()
-        self._current: Final = self._motor.get_stator_current()
-        self._temperature: Final = self._motor.get_device_temp()
+        self._position: Final = self._main_motor.get_position()
+        self._velocity: Final = self._main_motor.get_velocity()
+        self._appliedVolts: Final = self._main_motor.get_motor_voltage()
+        self._current: Final = self._main_motor.get_stator_current()
+        self._temperature: Final = self._main_motor.get_device_temp()
 
         # Configure update frequencies
         BaseStatusSignal.set_update_frequency_for_all(
@@ -82,7 +82,7 @@ class LauncherIOTalonFX(LauncherIO):
             self._current,
             self._temperature
         )
-        self._motor.optimize_bus_utilization()
+        self._main_motor.optimize_bus_utilization()
 
         # Voltage control request
         self._voltageRequest: Final[VelocityVoltage] = VelocityVoltage(0)
@@ -109,7 +109,7 @@ class LauncherIOTalonFX(LauncherIO):
     def setMotorRPS(self, rps: float) -> None:
         """Set the motor output velocity."""
         self._voltageRequest.velocity = rps
-        self._motor.set_control(self._voltageRequest)
+        self._main_motor.set_control(self._voltageRequest)
 
 
 
