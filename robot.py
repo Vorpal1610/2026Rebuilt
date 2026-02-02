@@ -1,6 +1,3 @@
-
-import os.path
-
 import wpilib
 from commands2 import CommandScheduler
 from ntcore import NetworkTableInstance
