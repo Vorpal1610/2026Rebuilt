@@ -8,17 +8,13 @@ from phoenix6.controls import VoltageOut
 from phoenix6.hardware import TalonFX
 from phoenix6.signals import NeutralModeValue
 from pykit.autolog import autolog
-from wpilib import PWMTalonFX, Encoder, RobotController
-from wpilib.simulation import DCMotorSim, EncoderSim
+from wpilib.simulation import DCMotorSim
 from wpimath.system.plant import DCMotor, LinearSystemId
 from wpimath.units import radians, radians_per_second, volts, amperes, celsius, degrees, rotationsToRadians
-from wpimath.controller import PIDController
-from wpimath.trajectory import TrapezoidProfile
+from wpimath.controller import ProfiledPIDController
 
 from constants import Constants
 from util import tryUntilOk
-
-import math
 
 
 class ClimberIO(ABC):
@@ -128,9 +124,10 @@ class ClimberIOSim(ClimberIO):
 
         self._closedLoop = False
 
-        self._controller = PIDController(Constants.ClimberConstants.GAINS.k_p,
+        self._controller = ProfiledPIDController(Constants.ClimberConstants.GAINS.k_p,
                                         Constants.ClimberConstants.GAINS.k_i,
                                         Constants.ClimberConstants.GAINS.k_d)
+
 
     def updateInputs(self, inputs: ClimberIO.ClimberIOInputs) -> None:
         """Update inputs with simulated state."""

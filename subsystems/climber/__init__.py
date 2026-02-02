@@ -44,15 +44,6 @@ class ClimberSubsystem(StateSubsystem):
         STOW = auto()
         EXTEND = auto()
 
-    _canrange_config = (CANrangeConfiguration().with_proximity_params(ProximityParamsConfigs().with_proximity_threshold(0.1)))
-
-    _motor_config = (TalonFXConfiguration()
-                     .with_slot0(Constants.ClimberConstants.GAINS)
-                     .with_motor_output(MotorOutputConfigs().with_neutral_mode(NeutralModeValue.BRAKE))
-                     .with_feedback(FeedbackConfigs().with_sensor_to_mechanism_ratio(Constants.ClimberConstants.GEAR_RATIO))
-                     .with_current_limits(CurrentLimitsConfigs().with_supply_current_limit_enable(True).with_supply_current_limit(Constants.ClimberConstants.SUPPLY_CURRENT))
-                     )
-
     _state_configs: dict[SubsystemState, tuple[float]] = {
         SubsystemState.STOW: (0.0),
         SubsystemState.EXTEND: (Constants.ClimberConstants.CLIMB_FULL_THRESHOLD)
@@ -64,7 +55,7 @@ class ClimberSubsystem(StateSubsystem):
 
         :param io: The climber IO implementation (ClimberIOTalonFX for real hardware, ClimberIOSim for simulation)
         """
-        super().__init__("Climber", self.SubsystemState.S)
+        super().__init__("Climber", self.SubsystemState.STOW)
         
         self._io: Final[ClimberIO] = io
         self._inputs = ClimberIO.ClimberIOInputs()
