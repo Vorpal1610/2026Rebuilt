@@ -144,8 +144,8 @@ class ClimberIOSim(ClimberIO):
 
         # Update inputs
         inputs.motorConnected = True
-        inputs.motorPosition = self._motorPosition
-        inputs.motorVelocity = self._motorVelocity
+        inputs.motorPosition = self._climberSim.getAngularPosition()
+        inputs.motorVelocity = self._climberSim.getAngularAcceleration()
         inputs.motorAppliedVolts = self._motorAppliedVolts
         inputs.motorCurrent = abs(self._climberSim.getCurrentDraw())  # Rough current estimate
         inputs.motorTemperature = 25.0  # Room temperature
@@ -156,7 +156,7 @@ class ClimberIOSim(ClimberIO):
 
     def setPosition(self, position):
         self._closedLoop = True
-        self._controller.setSetpoint(rotationsToRadians(position))
+        self._controller.getSetpoint(rotationsToRadians(position))
 
     def setMotorVoltage(self, voltage: volts) -> None:
         """Set the motor output voltage (simulated)."""
