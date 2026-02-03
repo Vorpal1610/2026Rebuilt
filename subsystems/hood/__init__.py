@@ -60,7 +60,7 @@ class HoodSubsystem(Subsystem):
         self.distance = (self.robot_pose_supplier()
                          .translation().distance(self.hub_pose.translation()))
 
-        self.io.set_position(Rotation2d.fromDegrees(self.angle)) # convert degrees to rotations,
+        self.io.set_position(Rotation2d.fromDegrees(self.angle)) # convert degrees to rotations
 
         self.hood_disconnected_alert.set(not self.inputs.hood_connected)
 
