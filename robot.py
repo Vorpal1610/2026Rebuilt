@@ -87,6 +87,17 @@ class Oasis(LoggedRobot):
     def robotPeriodic(self) -> None:
         CommandScheduler.getInstance().run()
         self._match_time_pub.set(Timer.getMatchTime())
+        # alliance = DriverStation.getGameSpecificMessage()
+        # if alliance:
+        #     match alliance:
+        #         case "B":
+        #             # wobuh
+        #         case "R":
+        #             #woruh
+        #         case _:
+        #
+        # else:
+            # GOODBYE JOJO
 
     def _simulationPeriodic(self) -> None:
         pass
@@ -98,14 +109,14 @@ class Oasis(LoggedRobot):
             selected_auto.schedule()
 
         elasticlib.select_tab("Autonomous")
-            
+
     def autonomousPeriodic(self) -> None:
         pass
-    
+
     def autonomousExit(self) -> None:
         DataLogManager.log("Autonomous period ended")
         elasticlib.select_tab("Teleop")
-            
+
     def teleopInit(self) -> None:
         DataLogManager.log("Teleoperated period started")
         self.container.get_autonomous_command().cancel()
@@ -135,7 +146,7 @@ class Oasis(LoggedRobot):
 
     def testExit(self):
         pass
-    
+
     def disabledPeriodic(self) -> None:
         pass
 
