@@ -1,5 +1,5 @@
 from abc import ABC
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Final
 
 from phoenix6 import BaseStatusSignal
@@ -8,12 +8,12 @@ from phoenix6.controls import VoltageOut
 from phoenix6.hardware import TalonFX
 from phoenix6.signals import NeutralModeValue
 from pykit.autolog import autolog
-from wpimath.units import radians, radians_per_second, volts, amperes, celsius, degrees
 from wpilib.simulation import DCMotorSim
-from wpimath.system.plant import DCMotor, LinearSystemId
-from math import pi
 
-from wpimath.controller import PIDController
+from wpimath.units import radians, radians_per_second, volts, amperes, celsius
+from wpimath.trajectory import TrapezoidProfile
+from wpimath.system.plant import DCMotor, LinearSystemId
+from wpimath.controller import ProfiledPIDController
 
 from constants import Constants
 from util import tryUntilOk
@@ -127,15 +127,21 @@ class FeederIOSim(FeederIO):
         self._motorAppliedVolts: float = 0.0
 
         self._motorType = DCMotor.krakenX60(1)
-        linearSystem = LinearSystemId.DCMotorSystem(self._motorType, Constants.FeederConstants.MOMENT_OF_INERTIA, Constants.FeederConstants.GEAR_RATIO)
+        linearSystem = LinearSystemId.DCMotorSystem(
+            self._motorType,
+            Constants.FeederConstants.MOMENT_OF_INERTIA,
+            Constants.FeederConstants.GEAR_RATIO
+        )
+
         self._simMotor = DCMotorSim(linearSystem, self._motorType, [0, 0])
 
-        self._closedLoop = True
+        self._closedLoop = False
 
-        self._controller = PIDController(Constants.FeederConstants.GAINS.k_p,
-                                        Constants.FeederConstants.GAINS.k_i,
-                                        Constants.FeederConstants.GAINS.k_d,
-                                        )
+        self._controller = ProfiledPIDController(Constants.FeederConstants.GAINS.k_p,
+                                                Constants.FeederConstants.GAINS.k_i,
+                                                Constants.FeederConstants.GAINS.k_d,
+                                                TrapezoidProfile.Constraints(12.0, 24.0)
+                                                )
 
     def updateInputs(self, inputs: FeederIO.FeederIOInputs) -> None:
         """Update inputs with simulated state."""
@@ -143,13 +149,17 @@ class FeederIOSim(FeederIO):
         self._simMotor.update(0.02)
         if self._closedLoop:
             # Closed loop logic kept incase we change to voltage velocity control instead
-            self._motorAppliedVolts = self._controller.calculate(self._simMotor.getAngularVelocity())
+            self._motorAppliedVolts = self._controller.calculate(
+                self._simMotor.getAngularVelocity()
+            )
         else:
-            self._controller.reset()
+            self._controller.reset(
+                self._simMotor.getAngularPosition(),
+                self._simMotor.getAngularVelocity()
+            )
 
         self._simMotor.setInputVoltage(max(-12.0, min(12.0, self._motorAppliedVolts)))
         
-
         # Update inputs
         inputs.motorConnected = True
         inputs.motorPosition = self._simMotor.getAngularPosition()
@@ -161,5 +171,8 @@ class FeederIOSim(FeederIO):
 
     def setMotorVoltage(self, voltage: volts) -> None:
         """Set the motor output voltage (simulated)."""
-        self._controller.setSetpoint(voltage)
 
+        if self._closedLoop:
+            self._controller.setGoal(voltage)
+        else:
+            self._motorAppliedVolts = voltage

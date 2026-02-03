@@ -125,31 +125,36 @@ class LauncherIOSim(LauncherIO):
         self._motorType = DCMotor.krakenX60(1) 
         # could be two but ill adjust when i confirm at practice (still dont have access to the cad lol)
 
-        linearSystem = LinearSystemId.flywheelSystem(self._motorType, Constants.LauncherConstants.MOMENT_OF_INERTIA, Constants.LauncherConstants.GEAR_RATIO)
+        linearSystem = LinearSystemId.flywheelSystem(
+            self._motorType,
+            Constants.LauncherConstants.MOMENT_OF_INERTIA,
+            Constants.LauncherConstants.GEAR_RATIO
+        )
         self._simMotor = FlywheelSim(linearSystem, self._motorType, [0])
-        self._closedloop = False
+        self._closedloop = True
 
         self._motorPosition: float = 0.0
         self._motorVelocity: float = 0.0
         self._motorAppliedVolts: float = 0.0
 
-        self._controller = PIDController(Constants.LauncherConstants.GAINS.k_p,
-                                        Constants.LauncherConstants.GAINS.k_i,
-                                        Constants.LauncherConstants.GAINS.k_d,
-                                        0.02)
-
+        self._controller = PIDController(
+                            Constants.LauncherConstants.GAINS.k_p,
+                            Constants.LauncherConstants.GAINS.k_i,
+                            Constants.LauncherConstants.GAINS.k_d,
+                            0.02)
+                        
     def updateInputs(self, inputs: LauncherIO.LauncherIOInputs) -> None:
         """Update inputs with simulated state."""
 
         self._simMotor.update(0.02)
 
-        if (self._closedloop):
-            self._motorAppliedVolts = self._controller.calculate(self._simMotor.getAngularVelocity())
+        if self._closedloop:
+            self._motorAppliedVolts = self._controller.calculate(
+                self._simMotor.getAngularVelocity())
         else:
             self._controller.reset()
 
         self._simMotor.setInputVoltage(self._motorAppliedVolts)
-        
 
         # Update inputs
         inputs.motorConnected = True
@@ -163,6 +168,3 @@ class LauncherIOSim(LauncherIO):
     def setMotorRPS(self, rps: float) -> None:
         """Set the motor output velocity."""
         self._controller.setSetpoint(rps)
-        
-        
-
