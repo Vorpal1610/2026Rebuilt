@@ -1,15 +1,12 @@
 from enum import auto, Enum
 
-from phoenix6.configs import CANrangeConfiguration, TalonFXConfiguration, MotorOutputConfigs, FeedbackConfigs, ProximityParamsConfigs, CurrentLimitsConfigs
-from phoenix6.signals import NeutralModeValue
-
 from pykit.autolog import autologgable_output
 from pykit.logger import Logger
 from wpilib import Alert
 from typing import Callable, Final
-from constants import Constants
 from subsystems import StateSubsystem
-from subsystems.launcher.io import LauncherIO
+from subsystems.launcher.io import LauncherIO, LauncherIOTalonFX, LauncherIOSim
+
 from wpimath.geometry import Pose2d
 from commands2.button import Trigger
 from commands2 import InstantCommand
@@ -37,14 +34,18 @@ class LauncherSubsystem(StateSubsystem):
         self._inputs = LauncherIO.LauncherIOInputs()
         self._robot_pose_supplier = robot_pose_supplier()
         
-        # Alert for disconnected motor
         self._motorDisconnectedAlert = Alert("Launcher motor is disconnected.", Alert.AlertType.kError)
+
+        
+        """"
+        automatic state switching based on position
 
         self._primary_trigger = Trigger(lambda: self.find_position() <= 4.667)
 
         self._primary_trigger.onChange(
-            InstantCommand(lambda: self.set_desired_state())
+            InstantCommand(lambda: self.set_desired_state(self.SubsystemState.SCORE if self.find_position() <= 4.667 else self.SubsystemState.PASS))
         )
+        """
 
 
     def periodic(self) -> None:
@@ -58,23 +59,15 @@ class LauncherSubsystem(StateSubsystem):
         # Update alerts
         self._motorDisconnectedAlert.set(not self._inputs.motorConnected)
 
-    def set_desired_state(self) -> None:
+    def set_desired_state(self, desired_state: SubsystemState) -> None:
         if not super().set_desired_state(desired_state):
             return
-        
-        if True: # Will be determined by the superstate of the robot
-            desired_state = self.SubsystemState.SCORE if self.find_position() <= 4.667 else self.SubsystemState.PASS
-        else:
-            desired_state = self.SubsystemState.IDLE
 
-
-        # Get motor voltage for this state
         motor_rps = self._state_configs.get(
             desired_state, 
             12.0
         )
         
-        # Set motor voltage through IO layer
         self._io.setMotorRPS(motor_rps)
 
     def find_position(self) -> float:

@@ -115,7 +115,6 @@ class FeederIOTalonFX(FeederIO):
         self._motor.set_control(self._voltageRequest)
 
 
-
 class FeederIOSim(FeederIO):
     """
     Simulation implementation for testing without hardware.
@@ -135,18 +134,20 @@ class FeederIOSim(FeederIO):
 
         self._controller = PIDController(Constants.FeederConstants.GAINS.k_p,
                                         Constants.FeederConstants.GAINS.k_i,
-                                        Constants.FeederConstants.GAINS.k_d)
+                                        Constants.FeederConstants.GAINS.k_d,
+                                        )
 
     def updateInputs(self, inputs: FeederIO.FeederIOInputs) -> None:
         """Update inputs with simulated state."""
 
         self._simMotor.update(0.02)
         if self._closedLoop:
+            # Closed loop logic kept incase we change to voltage velocity control instead
             self._motorAppliedVolts = self._controller.calculate(self._simMotor.getAngularVelocity())
         else:
             self._controller.reset()
 
-        self._simMotor.setInputVoltage(self._motorAppliedVolts)
+        self._simMotor.setInputVoltage(max(-12.0, min(12.0, self._motorAppliedVolts)))
         
 
         # Update inputs
@@ -160,5 +161,5 @@ class FeederIOSim(FeederIO):
 
     def setMotorVoltage(self, voltage: volts) -> None:
         """Set the motor output voltage (simulated)."""
-        self._motorAppliedVolts = max(-12.0, min(12.0, voltage))
+        self._controller.setSetpoint(voltage)
 

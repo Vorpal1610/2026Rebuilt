@@ -25,8 +25,8 @@ from subsystems.intake import IntakeSubsystem
 from subsystems.superstructure import Superstructure
 from subsystems.swerve import SwerveSubsystem
 from subsystems.vision import VisionSubsystem
-from subsystems.feeder import FeederSubsystem
-from subsystems.feeder import FeederIOSim, FeederIOTalonFX
+from subsystems.feeder import FeederIOSim, FeederIOTalonFX, FeederSubsystem
+from subsystems.launcher import LauncherIOSim, LauncherIOTalonFX, LauncherSubsystem
 
 
 class RobotContainer:
@@ -48,6 +48,7 @@ class RobotContainer:
         self.drivetrain: Optional[SwerveSubsystem] = None
         self.vision: Optional[VisionSubsystem] = None
         self.feeder: Optional[FeederSubsystem] = None
+        self.launcher: Optional[LauncherSubsystem] = None
         match Constants.currentMode:
             case Constants.Mode.REAL:
                 # Real robot, instantiate hardware IO implementations
@@ -95,6 +96,13 @@ class RobotContainer:
                 else:
                     print("Feeder subsystem not available on this robot")
 
+                if has_subsystem("launcher"):
+                    launcher_io = LauncherIOTalonFX(Constants.CanIDs.LAUNCHER_LEFT_TALON)
+                    self.launcher = LauncherSubsystem(launcher_io, lambda: self.drivetrain.get_state().pose)
+                    print("Launcher, Present")
+                else:
+                    print("Launcher subsystem not available on this robot")
+
             case Constants.Mode.SIM:
                 # Sim robot, instantiate physics sim IO implementations (if available)
                 self.drivetrain = TunerConstants.create_drivetrain()
@@ -117,6 +125,12 @@ class RobotContainer:
                     print("Feeder, Present")
                 else:
                     print("Feeder subsystem not available on this robot")
+
+                if has_subsystem("launcher"):
+                    self.launcher = LauncherSubsystem(LauncherIOSim(), lambda: self.drivetrain.get_state().pose)
+                    print("Launcher, Present")
+                else:
+                    print("Launcher subsystem not available on this robot")
 
         self.superstructure = Superstructure(
             self.drivetrain, self.vision, self.climber, self.intake
@@ -228,6 +242,7 @@ class RobotContainer:
         self._driver_controller.start().onTrue(self.drivetrain.runOnce(lambda: self.drivetrain.seed_field_centric()))
 
         self._function_controller.leftBumper().whileTrue(InstantCommand(lambda: self.feeder.set_desired_state(self.feeder.SubsystemState.INWARD))).onFalse(InstantCommand(lambda: self.feeder.set_desired_state(self.feeder.SubsystemState.STOP)))
+        self._function_controller.rightBumper().whileTrue(InstantCommand(lambda: self.launcher.set_desired_state(self.launcher.SubsystemState.SCORE))).onFalse(InstantCommand(lambda: self.launcher.set_desired_state(self.launcher.SubsystemState.IDLE)))
 
         goal_bindings = {
             self._function_controller.y(): self.superstructure.Goal.SCORE,
@@ -235,7 +250,7 @@ class RobotContainer:
             self._function_controller.b(): self.superstructure.Goal.PASSOUTPOST,
             self._function_controller.a(): self.superstructure.Goal.DEFAULT,
             #self._function_controller.leftBumper(): self.superstructure.Goal.CLIMBREADY,
-            self._function_controller.rightBumper(): self.superstructure.Goal.CLIMB,
+            #self._function_controller.rightBumper(): self.superstructure.Goal.CLIMB,
         }
 
         """ 

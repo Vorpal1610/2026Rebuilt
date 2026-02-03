@@ -9,8 +9,8 @@ from phoenix6.hardware import TalonFX
 from phoenix6.signals import NeutralModeValue
 from pykit.autolog import autolog
 from wpimath.units import radians, radians_per_second, volts, amperes, celsius, degrees, revolutions_per_minute
-from wpimath.system.plant import DCMotor
-from wpimath.controller import ProfiledPIDController
+from wpimath.system.plant import DCMotor, LinearSystemId
+from wpimath.controller import PIDController
 from wpilib.simulation import FlywheelSim
 
 from constants import Constants
@@ -115,7 +115,6 @@ class LauncherIOTalonFX(LauncherIO):
         self._main_motor.set_control(self._voltageRequest)
 
 
-
 class LauncherIOSim(LauncherIO):
     """
     Simulation implementation for testing without hardware.
@@ -126,17 +125,18 @@ class LauncherIOSim(LauncherIO):
         self._motorType = DCMotor.krakenX60(1) 
         # could be two but ill adjust when i confirm at practice (still dont have access to the cad lol)
 
-        self._simMotor = FlywheelSim(self._motorType, Constants.LauncherConstants.GEAR_RATIO, 0.003)
+        linearSystem = LinearSystemId.flywheelSystem(self._motorType, Constants.LauncherConstants.MOMENT_OF_INERTIA, Constants.LauncherConstants.GEAR_RATIO)
+        self._simMotor = FlywheelSim(linearSystem, self._motorType, [0])
         self._closedloop = False
 
         self._motorPosition: float = 0.0
         self._motorVelocity: float = 0.0
         self._motorAppliedVolts: float = 0.0
-        self._motorSetpointRps: float = 0.0
 
-        self._controller = ProfiledPIDController(Constants.LauncherConstants.GAINS.k_p,
+        self._controller = PIDController(Constants.LauncherConstants.GAINS.k_p,
                                         Constants.LauncherConstants.GAINS.k_i,
-                                        Constants.LauncherConstants.GAINS.k_d)
+                                        Constants.LauncherConstants.GAINS.k_d,
+                                        0.02)
 
     def updateInputs(self, inputs: LauncherIO.LauncherIOInputs) -> None:
         """Update inputs with simulated state."""
@@ -144,11 +144,11 @@ class LauncherIOSim(LauncherIO):
         self._simMotor.update(0.02)
 
         if (self._closedloop):
-            self._motorVelocity = self._controller.calculate(self._simMotor.getAngularVelocity())
+            self._motorAppliedVolts = self._controller.calculate(self._simMotor.getAngularVelocity())
         else:
-            self._controller.reset(self._simMotor.getAngularVelocity(), self._simMotor.getAngularAcceleration())
+            self._controller.reset()
 
-        self.setMotorRPS(self._motorVelocity)
+        self._simMotor.setInputVoltage(self._motorAppliedVolts)
         
 
         # Update inputs
@@ -162,7 +162,7 @@ class LauncherIOSim(LauncherIO):
 
     def setMotorRPS(self, rps: float) -> None:
         """Set the motor output velocity."""
-        self._motorVelocity = rps
+        self._controller.setSetpoint(rps)
         
         
 
