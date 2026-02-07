@@ -21,7 +21,7 @@ from generated.tuner_constants import TunerConstants
 from robot_config import currentRobot, has_subsystem, Robot  # Robot detection (Larry vs Comp)
 from subsystems.climber import ClimberSubsystem
 from subsystems.climber.io import ClimberIOTalonFX, ClimberIOSim
-from subsystems.intake import IntakeSubsystem
+from subsystems.intake import IntakeSubsystem, IntakeIO, IntakeIOSim, IntakeIOTalonFX
 from subsystems.superstructure import Superstructure
 from subsystems.swerve import SwerveSubsystem
 from subsystems.vision import VisionSubsystem
@@ -109,7 +109,13 @@ class RobotContainer:
                     print("Launcher, Present")
                 else:
                     print("Launcher subsystem not available on this robot")
-                    #create hood subsystem
+
+                if has_subsystem("intake"):
+                    intake_io = IntakeIOTalonFX()
+                    self.intake = IntakeSubsystem(intake_io)
+                    print("Intake, Present")
+                else:
+                    print("Intake subsystem not available on this robot")
 
                 if has_subsystem("hood"):
                     hood_config = TalonFXConfiguration()
@@ -159,6 +165,12 @@ class RobotContainer:
                     print("Launcher, Present")
                 else:
                     print("Launcher subsystem not available on this robot")
+
+                if has_subsystem("intake"):
+                    self.intake = IntakeSubsystem(IntakeIOSim())
+                    print("Intake, Present")
+                else:
+                    print("Intake subsystem not available on this robot")
 
         self.superstructure = Superstructure(
             self.drivetrain, self.vision, self.climber, self.intake
@@ -273,7 +285,8 @@ class RobotContainer:
                 lambda: self.drivetrain.seed_field_centric()))
 
         self._function_controller.leftBumper().whileTrue(InstantCommand(lambda: self.feeder.set_desired_state(self.feeder.SubsystemState.INWARD))).onFalse(InstantCommand(lambda: self.feeder.set_desired_state(self.feeder.SubsystemState.STOP)))
-        self._function_controller.rightBumper().whileTrue(InstantCommand(lambda: self.launcher.set_desired_state(self.launcher.SubsystemState.SCORE))).onFalse(InstantCommand(lambda: self.launcher.set_desired_state(self.launcher.SubsystemState.IDLE)))
+        #self._function_controller.rightBumper().whileTrue(InstantCommand(lambda: self.launcher.set_desired_state(self.launcher.SubsystemState.SCORE))).onFalse(InstantCommand(lambda: self.launcher.set_desired_state(self.launcher.SubsystemState.IDLE)))
+        self._function_controller.rightBumper().whileTrue(InstantCommand(lambda: self.intake.set_desired_state(self.intake.SubsystemState.INTAKE))).onFalse(InstantCommand(lambda: self.intake.set_desired_state(self.intake.SubsystemState.STOP)))
 
         goal_bindings = {
             self._function_controller.y(): self.superstructure.Goal.SCORE,

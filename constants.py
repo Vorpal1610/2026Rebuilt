@@ -58,8 +58,10 @@ class Constants:
 
     class IntakeConstants:
         GEAR_RATIO = None
+        GAINS: Slot0Configs = None
         GAINS = None
         SUPPLY_CURRENT = None
+        MOMENT_OF_INERTIA = None
 
     class LauncherConstants:
         GEAR_RATIO = None
@@ -164,23 +166,24 @@ def _init_hardware_configs():
             # Intake
             Constants.IntakeConstants.GEAR_RATIO = 1.0  # Adjust based on actual gear ratio
             Constants.IntakeConstants.GAINS = (Slot0Configs()
-                .with_k_p(0.1)
+                .with_k_p(0.7)
                 .with_k_i(0.0)
                 .with_k_d(0.0)
-                .with_k_s(0.0)
-                .with_k_v(0.0)
+                .with_k_s(0.9)
+                .with_k_v(0.1)
                 .with_k_a(0.0)
             )
             Constants.IntakeConstants.SUPPLY_CURRENT = 30.0  # Amperes
+            Constants.IntakeConstants.MOMENT_OF_INERTIA = 0.0067
 
             # Launcher
-            Constants.LauncherConstants.GEAR_RATIO = 1.0  # Adjust based on actual gear ratio
+            Constants.LauncherConstants.GEAR_RATIO = 1.25  # Adjust based on actual gear ratio
             Constants.LauncherConstants.GAINS = (Slot0Configs()
                 .with_k_p(0.175)
                 .with_k_i(0.0)
                 .with_k_d(0.0)
-                .with_k_s(0.0)
-                .with_k_v(0.0)
+                .with_k_s(0.45)
+                .with_k_v(0.1)
                 .with_k_a(0.0)
             )
             Constants.LauncherConstants.SUPPLY_CURRENT = 30.0  # Amperes
@@ -190,11 +193,11 @@ def _init_hardware_configs():
             # Feeder
             Constants.FeederConstants.GEAR_RATIO = 1.0  # Adjust based on actual gear ratio
             Constants.FeederConstants.GAINS = (Slot0Configs()
-                .with_k_p(5)
+                .with_k_p(.2)
                 .with_k_i(0.0)
                 .with_k_d(0.0)
-                .with_k_s(0.0)
-                .with_k_v(0.0)
+                .with_k_s(0.3)
+                .with_k_v(0.127)
                 .with_k_a(0.0)
             )
             Constants.FeederConstants.SUPPLY_CURRENT = 30.0  # Amperes
