@@ -89,6 +89,8 @@ class Constants:
         GEAR_RATIO = 170/36
         SUPPLY_CURRENT = 40
         MOI = .455
+        HARDSTOP_START = 176.36 # Placeholder
+        HARDSTOP_END = -176.36 # Placeholder
         
     class HoodConstants:
         GEAR_RATIO = 68/3

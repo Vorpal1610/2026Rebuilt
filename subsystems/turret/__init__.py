@@ -8,6 +8,7 @@ from subsystems.turret.io import TurretIO
 from math import *
 from wpimath.geometry import Pose2d, Rotation2d
 from wpilib import DriverStation
+from wpimath.units import rotationsToRadians
 
 class TurretSubsystem(Subsystem):
 
@@ -67,9 +68,21 @@ class TurretSubsystem(Subsystem):
                 print("No turret goal set, returning 0.0")
                 return 0.0
         return atan(ydist / xdist)
+    
+    def check_hardstop(self, target_radians):
+
+        target_guess = self.independent_rotation.radians + target_radians
+
+        if target_guess > rotationsToRadians(Constants.TurretConstants.HARDSTOP_START) and target_guess < (rotationsToRadians(Constants.TurretConstants.HARDSTOP_END) + 2 * pi):
+            target_radians = rotationsToRadians(Constants.TurretConstants.HARDSTOP_START) - self.current_radians
+        elif target_guess > rotationsToRadians(Constants.TurretConstants.HARDSTOP_START):
+            target_radians -= 2 * pi
+
+        return target_radians
 
     def rotate_to_goal(self, target: Goal):
         # This function might not work because it probably isn't periodic so it'll only set the output once and then not check if the angle is correct until it's called again (which is when the target changes)
         self.goal = target
-        target_radians = self.get_radians_to_goal()
+        target_radians = self.get_radians_to_goal() - self.current_radians
+        target_radians = self.check_hardstop(target_radians)
         self._io.set_position(target_radians)
