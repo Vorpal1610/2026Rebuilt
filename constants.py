@@ -44,9 +44,9 @@ class Constants:
         HOOD_CANCODER = 18
 
     class ClimberConstants:
-        GEAR_RATIO = 1.0
+        GEAR_RATIO = 61504.0 / 189
         GAINS = (Slot0Configs()
-                .with_k_p(1.0)
+                .with_k_p(40.0)
                 .with_k_i(0.0)
                 .with_k_d(0.0)
                 .with_k_s(0.0)
@@ -55,7 +55,7 @@ class Constants:
             )
         VOLTAGE_INWARDS = None
         VOLTAGE_OUTWARDS = None
-        CLIMB_FULL_THRESHOLD = 100.0 # Adjust as needed
+        CLIMB_FULL_THRESHOLD = 5.0 # Adjust as needed
         SUPPLY_CURRENT = 30.0
         MOMENT_OF_INERTIA = 0.3 # Placeholder until climber is finished
 
@@ -132,7 +132,7 @@ def _init_hardware_configs():
             # Climber
             Constants.ClimberConstants.GEAR_RATIO = 61504.0 / 189
             Constants.ClimberConstants.GAINS = (Slot0Configs()
-                .with_k_p(1.0)
+                .with_k_p(40.0)
                 .with_k_i(0.0)
                 .with_k_d(0.0)
                 .with_k_s(0.0)
@@ -141,7 +141,7 @@ def _init_hardware_configs():
             )
             Constants.ClimberConstants.VOLTAGE_INWARDS = 16.0
             Constants.ClimberConstants.VOLTAGE_OUTWARDS = -4.0
-            Constants.ClimberConstants.CLIMB_FULL_THRESHOLD = 100.0  # Adjust as needed
+            Constants.ClimberConstants.CLIMB_FULL_THRESHOLD = 5.0  # Adjust as needed
             Constants.ClimberConstants.SUPPLY_CURRENT = 30.0
             Constants.ClimberConstants.MOMENT_OF_INERTIA = 0.3
 
@@ -149,7 +149,7 @@ def _init_hardware_configs():
             # Climber
             Constants.ClimberConstants.GEAR_RATIO = 61504.0 / 189  # Same or different?
             Constants.ClimberConstants.GAINS = (Slot0Configs()
-                .with_k_p(1.0)
+                .with_k_p(40.0)
                 .with_k_i(0.0)
                 .with_k_d(0.0)
                 .with_k_s(0.0)
@@ -158,7 +158,7 @@ def _init_hardware_configs():
             )
             Constants.ClimberConstants.VOLTAGE_INWARDS = 16.0
             Constants.ClimberConstants.VOLTAGE_OUTWARDS = -4.0
-            Constants.ClimberConstants.CLIMB_FULL_THRESHOLD = 100.0  # Adjust as needed
+            Constants.ClimberConstants.CLIMB_FULL_THRESHOLD = 5.0  # Adjust as needed
             Constants.ClimberConstants.SUPPLY_CURRENT = 30.0
             Constants.ClimberConstants.MOMENT_OF_INERTIA = 0.3
 

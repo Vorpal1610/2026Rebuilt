@@ -152,7 +152,7 @@ class ClimberIOSim(ClimberIO):
         inputs.climber_connected = True
         inputs.climber_position = self._climber_sim.getAngularPosition()
         inputs.climber_velocity = self._climber_sim.getAngularAcceleration()
-        inputs.climber_applied_volts = self._motor_applied_volts
+        inputs.climber_applied_volts = self._climber_sim.getInputVoltage()
         inputs.climber_current = abs(self._climber_sim.getCurrentDraw())  # Rough current estimate
         inputs.climber_temperature = 25.0  # Room temperature
 
