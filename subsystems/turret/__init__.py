@@ -69,9 +69,9 @@ class TurretSubsystem(Subsystem):
                 return 0.0
         return atan(ydist / xdist)
     
-    def check_hardstop(self, target_radians):
+    def check_hardstop(self, target_radians: radians):
 
-        target_guess = self.independent_rotation.radians + target_radians
+        target_guess = self.independent_rotation.radians() + target_radians
 
         if target_guess > rotationsToRadians(Constants.TurretConstants.HARDSTOP_START) and target_guess < (rotationsToRadians(Constants.TurretConstants.HARDSTOP_END) + 2 * pi):
             target_radians = rotationsToRadians(Constants.TurretConstants.HARDSTOP_START) - self.current_radians
