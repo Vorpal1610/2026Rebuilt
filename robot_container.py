@@ -259,6 +259,9 @@ class RobotContainer:
             self._function_controller.b().onTrue(self.turret.runOnce(lambda: self.turret.rotate_to_goal(self.turret.Goal.OUTPOST)))
             print("turret to outpost")
 
+            self._function_controller.rightBumper().onTrue(self.turret.runOnce(lambda: self.turret._io.set_position(-2)))
+            self._function_controller.leftBumper().onTrue(self.turret.runOnce(lambda: self.turret._io.set_position(2)))
+
     def get_autonomous_command(self) -> commands2.Command:
         return self._auto_chooser.getSelected()
 
