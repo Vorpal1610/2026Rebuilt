@@ -259,12 +259,14 @@ class RobotContainer:
             self._function_controller.b().onTrue(self.turret.runOnce(lambda: self.turret.rotate_to_goal(self.turret.Goal.OUTPOST)))
             print("turret to outpost")
             self._function_controller.rightTrigger().onTrue(self.turret.runOnce(lambda: self.turret.rotate_to_goal(self.turret.Goal.NONE)))
-            print("turret in manual mode")
 
-            
+            # THESE TWO ARE THE PROBLEM
+            self._function_controller.rightTrigger().whileTrue(
+            self.turret._io.manual_rotation(lambda: (-self._function_controller.getRightX() * self._max_angular_rate)))
 
-            self._function_controller.rightBumper().onTrue(self.turret.runOnce(lambda: self.turret._io.set_position(-2)))
-            self._function_controller.leftBumper().onTrue(self.turret.runOnce(lambda: self.turret._io.set_position(2)))
+            # Test commands
+            #self._function_controller.rightBumper().onTrue(self.turret.runOnce(lambda: self.turret._io.set_position(-2)))
+            #self._function_controller.leftBumper().onTrue(self.turret.runOnce(lambda: self.turret._io.set_position(2)))
 
             self._function_controller.povUp().onTrue(self.turret.runOnce(lambda: self.turret.rotate_to_zero()))
 

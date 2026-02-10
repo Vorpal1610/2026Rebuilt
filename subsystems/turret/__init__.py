@@ -91,4 +91,4 @@ class TurretSubsystem(Subsystem):
 
     def rotate_to_zero(self):
         self.goal = self.Goal.NONE
-        self._io.set_to_zero(self.current_radians)
+        self._io.set_to_zero()

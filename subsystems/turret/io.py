@@ -56,6 +56,14 @@ class TurretIO(ABC):
         """
         pass
 
+    def manual_rotation(self, rotation_rate: float) -> None:
+        """
+        Rotate the turret manually based on joystick input.
+        Args:
+            rotation_rate: The rotation rate in radians per second.
+        """
+        pass
+
 
 class TurretIOTalonFX(TurretIO):
     
@@ -138,6 +146,10 @@ class TurretIOTalonFX(TurretIO):
             self.velocity_request = VelocityVoltage(radiansToRotations(-Constants.TurretConstants.GEAR_RATIO * 2 * pi))
             self.turret_motor.set_control(self.velocity_request)
 
+    def manual_rotation(self, rotation_rate: float):
+        self.velocity_request = VelocityVoltage(radiansToRotations(rotation_rate))
+        self.turret_motor.set_control(self.velocity_request)
+
 
 
 class TurretIOSim(TurretIO):
@@ -196,5 +208,9 @@ class TurretIOSim(TurretIO):
     def set_to_zero(self):
         self.closed_loop = True
         self.controller.setSetpoint(-Constants.TurretConstants.GEAR_RATIO * 2 * pi)
+
+    def manual_rotation(self, rotation_rate: float):
+        self.closed_loop = True
+        # self.controller.setSetpoint(rotation_rate)
 
     
