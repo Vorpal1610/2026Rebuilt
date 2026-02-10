@@ -50,6 +50,8 @@ class TurretSubsystem(Subsystem):
 
         if self.goal != self.Goal.NONE:
             self.rotate_to_goal(self.goal)
+
+        
         
     def get_radians_to_goal(self):
         # If the robot position is in the alliance side, call get_radians_to_goal before aiming
@@ -65,10 +67,10 @@ class TurretSubsystem(Subsystem):
                 xdist = abs(self.robot_pose_supplier().X() - Constants.GoalLocations.BLUE_DEPOT_PASS.X()) if DriverStation.getAlliance == DriverStation.Alliance.kBlue else abs(self.robot_pose_supplier().X() - Constants.GoalLocations.RED_DEPOT_PASS.X())
                 ydist = abs(self.robot_pose_supplier().Y() - Constants.GoalLocations.BLUE_DEPOT_PASS.Y()) if DriverStation.getAlliance == DriverStation.Alliance.kBlue else abs(self.robot_pose_supplier().Y() - Constants.GoalLocations.RED_DEPOT_PASS.Y())
             case _:
-                print("No turret goal set, returning 0.0")
-                return 0.0
+                print("Returning current position")
+                return self.independent_rotation.radians()
         return atan(ydist / xdist)
-    
+
     def check_hardstop(self, target_radians: radians):
 
         target_guess = self.independent_rotation.radians() + target_radians
@@ -86,3 +88,7 @@ class TurretSubsystem(Subsystem):
         target_radians = self.get_radians_to_goal() - self.current_radians
         target_radians = self.check_hardstop(target_radians)
         self._io.set_position(target_radians)
+
+    def rotate_to_zero(self):
+        self.goal = self.Goal.NONE
+        self._io.set_to_zero(self.current_radians)

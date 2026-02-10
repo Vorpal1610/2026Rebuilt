@@ -81,7 +81,7 @@ class Constants:
         GAINS = (Slot0Configs()
                 .with_k_p(1.0)
                 .with_k_i(0.0)
-                .with_k_d(0.0)
+                .with_k_d(1.0)
                 .with_k_s(0.0)
                 .with_k_v(0.0)
                 .with_k_a(0.0)
@@ -91,6 +91,7 @@ class Constants:
         MOI = .455
         HARDSTOP_START = 176.36 # Placeholder
         HARDSTOP_END = -176.36 # Placeholder
+        MAX_TORQUE_CURRENT = 50.0 # Placeholder
         
     class HoodConstants:
         GEAR_RATIO = 68/3

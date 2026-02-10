@@ -13,7 +13,7 @@ from phoenix6.configs.config_groups import NeutralModeValue, MotorOutputConfigs,
 from pykit.networktables.loggeddashboardchooser import LoggedDashboardChooser
 from wpilib import XboxController, getDeployDirectory
 from wpimath.geometry import Rotation2d
-from wpimath.units import rotationsToRadians
+from wpimath.units import rotationsToRadians, degreesToRadians
 
 from constants import Constants
 from generated.larry.tuner_constants import TunerConstants as LarryTunerConstants
@@ -258,9 +258,15 @@ class RobotContainer:
             print("turret to depot")
             self._function_controller.b().onTrue(self.turret.runOnce(lambda: self.turret.rotate_to_goal(self.turret.Goal.OUTPOST)))
             print("turret to outpost")
+            self._function_controller.rightTrigger().onTrue(self.turret.runOnce(lambda: self.turret.rotate_to_goal(self.turret.Goal.NONE)))
+            print("turret in manual mode")
+
+            
 
             self._function_controller.rightBumper().onTrue(self.turret.runOnce(lambda: self.turret._io.set_position(-2)))
             self._function_controller.leftBumper().onTrue(self.turret.runOnce(lambda: self.turret._io.set_position(2)))
+
+            self._function_controller.povUp().onTrue(self.turret.runOnce(lambda: self.turret.rotate_to_zero()))
 
     def get_autonomous_command(self) -> commands2.Command:
         return self._auto_chooser.getSelected()

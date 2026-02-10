@@ -4,7 +4,7 @@ from typing import Final
 
 from phoenix6 import BaseStatusSignal
 from phoenix6.configs import TalonFXConfiguration
-from phoenix6.controls import PositionVoltage
+from phoenix6.controls import PositionVoltage, VelocityVoltage
 from phoenix6.hardware import TalonFX
 from phoenix6.signals import NeutralModeValue, InvertedValue
 from pykit.autolog import autolog
@@ -15,6 +15,7 @@ from wpimath.controller import PIDController
 
 from constants import Constants
 from util import tryUntilOk
+from math import pi
 
 
 class TurretIO(ABC):
@@ -46,6 +47,12 @@ class TurretIO(ABC):
         Set the turret position in radians.
         Args:
             radians: The position in radians to set the turret to.
+        """
+        pass
+
+    def set_to_zero(self) -> None:
+        """
+        Rotate the turret to the zero position.
         """
         pass
 
@@ -90,6 +97,8 @@ class TurretIOTalonFX(TurretIO):
 
         self.position_request = PositionVoltage(0)
 
+        self.velocity_request = VelocityVoltage(0)
+
     def update_inputs(self, inputs: TurretIO.TurretIOInputs):
         motor_status = BaseStatusSignal.refresh_all(
         self.position,
@@ -117,6 +126,17 @@ class TurretIOTalonFX(TurretIO):
         self.position_request = PositionVoltage(radiansToRotations(radians))
         self.turret_motor.set_control(self.position_request)
 
+    def set_to_zero(self) -> None:
+        """
+        Rotate the turret to the zero position.
+        """
+
+        if (self.turret_motor.get_torque_current() > Constants.TurretConstants.MAX_TORQUE_CURRENT):
+            self.turret_motor.set_control(PositionVoltage(0))
+            print("At zero position")
+        else:
+            self.velocity_request = VelocityVoltage(radiansToRotations(-Constants.TurretConstants.GEAR_RATIO * 2 * pi))
+            self.turret_motor.set_control(self.velocity_request)
 
 
 
@@ -172,5 +192,9 @@ class TurretIOSim(TurretIO):
         """
         self.closed_loop = True
         self.controller.setSetpoint(radians)
+
+    def set_to_zero(self):
+        self.closed_loop = True
+        self.controller.setSetpoint(-Constants.TurretConstants.GEAR_RATIO * 2 * pi)
 
     
