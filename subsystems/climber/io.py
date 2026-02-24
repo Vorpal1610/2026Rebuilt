@@ -6,6 +6,8 @@ from phoenix6 import BaseStatusSignal
 from phoenix6.configs import TalonFXConfiguration
 from phoenix6.controls import PositionVoltage
 from phoenix6.hardware import TalonFX
+from phoenix6.signals import InvertedValue
+from phoenix6.signals import NeutralModeValue
 from pykit.autolog import autolog
 from wpilib.simulation import DCMotorSim
 from wpimath.system.plant import DCMotor, LinearSystemId
@@ -60,6 +62,12 @@ class ClimberIOTalonFX(ClimberIO):
         :param motor_config: TalonFX configuration to apply
         """
         self._motor: Final[TalonFX] = TalonFX(motor_id, "*")
+
+        motor_config = TalonFXConfiguration()
+        motor_config.slot0 = Constants.ClimberConstants.GAINS
+        motor_config.feedback.sensor_to_mechanism_ratio = Constants.ClimberConstants.GEAR_RATIO
+        motor_config.motor_output.neutral_mode = NeutralModeValue.BRAKE
+        motor_config.motor_output.inverted = InvertedValue.CLOCKWISE_POSITIVE
 
         # Apply motor configuration
         tryUntilOk(5, lambda: self._motor.configurator.apply(motor_config, 0.25))
@@ -123,7 +131,7 @@ class ClimberIOSim(ClimberIO):
         self._motor_velocity: float = 0.0
         self._motor_applied_volts: float = 0.0
 
-        self._motor_type = DCMotor.krakenX60(1)
+        self._motor_type = DCMotor.falcon500(1)
         self._climber_sim = DCMotorSim(
             LinearSystemId.DCMotorSystem(
                 self._motor_type,
